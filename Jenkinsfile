@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'maven-3.9.9'
+    }
+
     environment {
         REGISTRY = "localhost:5000"
         IMAGE_NAME = "total-site"
@@ -16,7 +20,9 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                sh 'mvn clean package'
+                withMaven(maven: 'maven-3.9.9') {
+                    sh 'mvn clean package'
+                }
             }
         }
 
