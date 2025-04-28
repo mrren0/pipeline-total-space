@@ -2,7 +2,7 @@ podTemplate(
     containers: [
         containerTemplate(
             name: 'docker',
-            image: 'docker:dind',
+            image: 'registry.ci.svc.cluster.local:5000/jenkins-agent-kubectl:latest',
             privileged: true,
             args: '--host=tcp://127.0.0.1:2375 --registry-mirror=https://mirror.gcr.io --insecure-registry=registry.ci.svc.cluster.local:5000',
             ttyEnabled: true
