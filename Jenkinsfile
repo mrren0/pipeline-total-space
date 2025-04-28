@@ -10,7 +10,6 @@ podTemplate(
     ]
 ) {
     node(POD_LABEL) {
-
         def REGISTRY = "registry.ci.svc.cluster.local:5000"
         def IMAGE_NAME = "total-site"
         def RAW_BRANCH = env.BRANCH_NAME ?: "master"
@@ -19,11 +18,9 @@ podTemplate(
 
         stage('Checkout') {
             echo "Branch detected: ${RAW_BRANCH}, normalized: ${BRANCH}"
-
             dir('site') {
                 git branch: RAW_BRANCH, url: 'https://github.com/mrren0/site-total-space.git'
             }
-
             sh 'ls -la'
             sh 'ls -la site'
         }
@@ -46,10 +43,8 @@ podTemplate(
                 """
             }
         }
-
     } // конец POD node
 
-    // деплой на обычной Jenkins-ноде с реальным kubectl
     node {
         def REGISTRY = "registry.ci.svc.cluster.local:5000"
         def IMAGE_NAME = "total-site"
