@@ -9,7 +9,7 @@ podTemplate(
         ),
         containerTemplate(
             name: 'kubectl',
-            image: 'bitnami/kubectl:1.27.13-debian-11-r102',
+            image: 'bitnami/kubectl:latest',
             command: 'cat',
             ttyEnabled: true
         )
