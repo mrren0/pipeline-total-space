@@ -13,9 +13,6 @@ pipeline {
     stages {
 stage('Checkout') {
     steps {
-        // Клонируем правильный репозиторий с сайтом
-        git branch: env.BRANCH_NAME ?: "master", url: 'https://github.com/mrren0/site-total-space.git'
-
         script {
             RAW_BRANCH = env.BRANCH_NAME ?: "master"
             BRANCH = RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()
@@ -23,9 +20,16 @@ stage('Checkout') {
             echo "Branch detected: ${RAW_BRANCH}, normalized: ${BRANCH}"
         }
 
+        // Клонируем сайт отдельно в папку "site"
+        dir('site') {
+            git branch: env.BRANCH_NAME ?: "master", url: 'https://github.com/mrren0/site-total-space.git'
+        }
+
         sh 'ls -la'
+        sh 'ls -la site'
     }
 }
+
 
 
 

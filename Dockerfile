@@ -1,2 +1,3 @@
 FROM nginx:alpine
-COPY target/*.war /usr/share/nginx/html/
+COPY site/target/*.war /usr/share/nginx/html/
+
