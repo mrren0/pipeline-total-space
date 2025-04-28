@@ -3,8 +3,8 @@ podTemplate(
         containerTemplate(
             name: 'kaniko',
             image: 'gcr.io/kaniko-project/executor:latest',
-            command: '/busybox/cat',
-            args: '-',
+            command: '/kaniko/executor',
+            args: '--help',
             ttyEnabled: true
         )
     ]
