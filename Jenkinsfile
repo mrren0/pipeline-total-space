@@ -6,6 +6,12 @@ podTemplate(
             privileged: true,
             args: '--host=tcp://127.0.0.1:2375 --registry-mirror=https://mirror.gcr.io --insecure-registry=registry.ci.svc.cluster.local:5000',
             ttyEnabled: true
+        ),
+        containerTemplate(
+            name: 'kubectl',
+            image: 'bitnami/kubectl:latest',
+            command: 'cat',
+            ttyEnabled: true
         )
     ]
 ) {
@@ -48,17 +54,19 @@ podTemplate(
         }
 
         stage('Deploy to Kubernetes') {
-            sh """
-            kubectl create namespace ${BRANCH} --dry-run=client -o yaml | kubectl apply -f -
+            container('kubectl') {
+                sh """
+                kubectl create namespace ${BRANCH} --dry-run=client -o yaml | kubectl apply -f -
 
-            kubectl delete deployment total-site -n ${BRANCH} --ignore-not-found=true
-            kubectl delete service total-site -n ${BRANCH} --ignore-not-found=true
-            kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found=true
+                kubectl delete deployment total-site -n ${BRANCH} --ignore-not-found=true
+                kubectl delete service total-site -n ${BRANCH} --ignore-not-found=true
+                kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found=true
 
-            sed -e "s/dev/${BRANCH}/g" -e "s|localhost:5000/total-site:dev|${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}|g" deployment.yaml | kubectl apply -f -
-            sed "s/dev/${BRANCH}/g" service.yaml | kubectl apply -f -
-            sed -e "s/dev/${BRANCH}/g" -e "s/dev.total-space.online/${BRANCH}.total-space.online/g" ingress.yaml | kubectl apply -f -
-            """
+                sed -e "s/dev/${BRANCH}/g" -e "s|localhost:5000/total-site:dev|${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}|g" deployment.yaml | kubectl apply -f -
+                sed "s/dev/${BRANCH}/g" service.yaml | kubectl apply -f -
+                sed -e "s/dev/${BRANCH}/g" -e "s/dev.total-space.online/${BRANCH}.total-space.online/g" ingress.yaml | kubectl apply -f -
+                """
+            }
         }
     }
 }
