@@ -3,8 +3,8 @@ podTemplate(
         containerTemplate(
             name: 'kaniko',
             image: 'gcr.io/kaniko-project/executor:latest',
-            command: ["/busybox/cat"],
-            args: ["-"],
+            command: '/busybox/cat',
+            args: '-',
             ttyEnabled: true
         )
     ]
@@ -53,8 +53,8 @@ podTemplate(
                 steps {
                     container('kaniko') {
                         sh '''
-                        mkdir -p /workspace/site/target
-                        cp -r site/target /workspace/site/target
+                        mkdir -p /workspace
+                        cp -r site/target /workspace/target
                         cp Dockerfile /workspace/Dockerfile
 
                         /kaniko/executor \
