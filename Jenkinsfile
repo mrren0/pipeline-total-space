@@ -11,10 +11,6 @@ podTemplate(
 ) {
     node(POD_LABEL) {
 
-        tools {
-            maven 'maven-3.9.9'
-        }
-
         environment {
             REGISTRY = "localhost:5000"
             IMAGE_NAME = "total-site"
@@ -39,16 +35,15 @@ podTemplate(
                 }
             }
 
-stage('Build Maven') {
-    steps {
-        dir('site') {
-            withMaven(maven: 'maven-3.9.9') {
-                sh 'mvn clean package'
+            stage('Build Maven') {
+                steps {
+                    dir('site') {
+                        withMaven(maven: 'maven-3.9.9') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-
 
             stage('Build and Push Docker Image') {
                 steps {
