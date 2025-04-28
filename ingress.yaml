@@ -4,7 +4,7 @@ metadata:
   name: total-site
   namespace: dev
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: traefik
 spec:
   rules:
     - host: dev.total-space.online

@@ -3,23 +3,18 @@ kind: Deployment
 metadata:
   name: total-site
   namespace: dev
-  labels:
-    app: total-site
-    environment: dev
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: total-site
-      environment: dev
   template:
     metadata:
       labels:
         app: total-site
-        environment: dev
     spec:
       containers:
         - name: total-site
-          image: localhost:5000/total-site:dev
+          image: registry.ci.svc.cluster.local:5000/total-site:dev
           ports:
             - containerPort: 80

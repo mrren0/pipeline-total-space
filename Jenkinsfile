@@ -11,7 +11,7 @@ podTemplate(
 ) {
     node(POD_LABEL) {
 
-        def REGISTRY = "localhost:5000"
+        def REGISTRY = "registry.ci.svc.cluster.local:5000"
         def IMAGE_NAME = "total-site"
         def RAW_BRANCH = env.BRANCH_NAME ?: "master"
         def BRANCH = RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()
@@ -38,12 +38,12 @@ podTemplate(
 
         stage('Build and Push Docker Image') {
             container('docker') {
-                sh '''
+                sh """
                 docker version
                 cd site
-                docker build -t localhost:5000/total-site:${BUILD_TAG} .
-                docker push localhost:5000/total-site:${BUILD_TAG}
-                '''
+                docker build -t ${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG} .
+                docker push ${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}
+                """
             }
         }
 
@@ -55,7 +55,7 @@ podTemplate(
             kubectl delete service total-site -n ${BRANCH} --ignore-not-found=true
             kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found=true
 
-            sed -e "s/dev/${BRANCH}/g" -e "s/localhost:5000\\/total-site:dev/localhost:5000\\/total-site:${BUILD_TAG}/g" deployment.yaml | kubectl apply -f -
+            sed -e "s/dev/${BRANCH}/g" -e "s|localhost:5000/total-site:dev|${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}|g" deployment.yaml | kubectl apply -f -
             sed "s/dev/${BRANCH}/g" service.yaml | kubectl apply -f -
             sed -e "s/dev/${BRANCH}/g" -e "s/dev.total-space.online/${BRANCH}.total-space.online/g" ingress.yaml | kubectl apply -f -
             """

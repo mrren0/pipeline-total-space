@@ -4,10 +4,8 @@ metadata:
   name: total-site
   namespace: dev
 spec:
-  type: ClusterIP
   selector:
     app: total-site
-    environment: dev
   ports:
     - protocol: TCP
       port: 80
