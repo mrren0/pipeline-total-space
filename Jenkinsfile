@@ -13,16 +13,20 @@ pipeline {
     stages {
 stage('Checkout') {
     steps {
-        checkout scm
+        // Клонируем правильный репозиторий с сайтом
+        git branch: env.BRANCH_NAME ?: "master", url: 'https://github.com/mrren0/site-total-space.git'
+
         script {
             RAW_BRANCH = env.BRANCH_NAME ?: "master"
             BRANCH = RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()
             BUILD_TAG = "${BRANCH}-${new Date().format('yyyyMMdd-HHmmss')}"
             echo "Branch detected: ${RAW_BRANCH}, normalized: ${BRANCH}"
         }
+
         sh 'ls -la'
     }
 }
+
 
 
         stage('Build Maven') {
