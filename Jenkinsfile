@@ -1,10 +1,10 @@
 podTemplate(
     containers: [
         containerTemplate(
-            name: 'kaniko',
-            image: 'gcr.io/kaniko-project/executor:latest',
-            command: '/kaniko/executor',
-            args: '--help',
+            name: 'docker',
+            image: 'docker:dind',
+            privileged: true,
+            args: '--host=tcp://127.0.0.1:2375 --registry-mirror=https://mirror.gcr.io',
             ttyEnabled: true
         )
     ]
@@ -49,20 +49,15 @@ podTemplate(
                 }
             }
 
-            stage('Build and Push Docker Image via Kaniko') {
+            stage('Build and Push Docker Image') {
                 steps {
-                    container('kaniko') {
+                    container('docker') {
                         sh '''
-                        mkdir -p /workspace
-                        cp -r site/target /workspace/target
-                        cp Dockerfile /workspace/Dockerfile
-
-                        /kaniko/executor \
-                          --dockerfile=/workspace/Dockerfile \
-                          --context=/workspace \
-                          --destination=localhost:5000/total-site:${BUILD_TAG} \
-                          --insecure \
-                          --skip-tls-verify
+                        docker version
+                        cp Dockerfile site/
+                        cd site
+                        docker build -t localhost:5000/total-site:${BUILD_TAG} .
+                        docker push localhost:5000/total-site:${BUILD_TAG}
                         '''
                     }
                 }
