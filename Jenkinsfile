@@ -40,7 +40,6 @@ podTemplate(
             container('docker') {
                 sh '''
                 docker version
-                cp Dockerfile site/
                 cd site
                 docker build -t localhost:5000/total-site:${BUILD_TAG} .
                 docker push localhost:5000/total-site:${BUILD_TAG}
