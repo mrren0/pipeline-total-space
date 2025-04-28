@@ -4,7 +4,7 @@ podTemplate(
             name: 'docker',
             image: 'docker:dind',
             privileged: true,
-            args: '--host=tcp://127.0.0.1:2375 --registry-mirror=https://mirror.gcr.io',
+            args: '--host=tcp://127.0.0.1:2375 --registry-mirror=https://mirror.gcr.io --insecure-registry=registry.ci.svc.cluster.local:5000',
             ttyEnabled: true
         )
     ]
