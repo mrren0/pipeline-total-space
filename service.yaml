@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: total-site
+  namespace: dev # В пайплайне подставится dev/prod
+spec:
+  type: ClusterIP
+  selector:
+    app: total-site
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

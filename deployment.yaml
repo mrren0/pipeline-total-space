@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: total-site
+  namespace: dev # В пайплайне подставится dev/prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: total-site
+  template:
+    metadata:
+      labels:
+        app: total-site
+    spec:
+      containers:
+        - name: total-site
+          image: localhost:5000/total-site:dev # В пайплайне подставится dev/prod
+          ports:
+            - containerPort: 80
