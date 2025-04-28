@@ -21,7 +21,7 @@ podTemplate(
             echo "Branch detected: ${RAW_BRANCH}, normalized: ${BRANCH}"
 
             dir('site') {
-                git branch: env.BRANCH_NAME ?: "master", url: 'https://github.com/mrren0/site-total-space.git'
+                git branch: RAW_BRANCH, url: 'https://github.com/mrren0/site-total-space.git'
             }
 
             sh 'ls -la'
@@ -46,21 +46,30 @@ podTemplate(
                 """
             }
         }
-    }
 
-    // Деплой делаем на host-ноде Jenkins
-    node('master') {
+    } // конец POD node
+
+    // деплой на обычной Jenkins-ноде с реальным kubectl
+    node {
+        def REGISTRY = "registry.ci.svc.cluster.local:5000"
+        def IMAGE_NAME = "total-site"
+        def RAW_BRANCH = env.BRANCH_NAME ?: "master"
+        def BRANCH = RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()
+        def BUILD_TAG = "${BRANCH}-${new Date().format('yyyyMMdd-HHmmss')}"
+
         stage('Deploy to Kubernetes') {
-            sh """
-            kubectl create namespace ${env.BRANCH_NAME ?: "master"} --dry-run=client -o yaml | kubectl apply -f -
-            kubectl delete deployment total-site -n ${env.BRANCH_NAME ?: "master"} --ignore-not-found=true
-            kubectl delete service total-site -n ${env.BRANCH_NAME ?: "master"} --ignore-not-found=true
-            kubectl delete ingress total-site -n ${env.BRANCH_NAME ?: "master"} --ignore-not-found=true
+            dir('site') {
+                sh """
+                kubectl create namespace ${BRANCH} --dry-run=client -o yaml | kubectl apply -f -
+                kubectl delete deployment total-site -n ${BRANCH} --ignore-not-found=true
+                kubectl delete service total-site -n ${BRANCH} --ignore-not-found=true
+                kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found=true
 
-            sed -e "s/dev/${env.BRANCH_NAME ?: "master"}/g" -e "s|localhost:5000/total-site:dev|registry.ci.svc.cluster.local:5000/total-site:${BUILD_TAG}|g" site/deployment.yaml | kubectl apply -f -
-            sed "s/dev/${env.BRANCH_NAME ?: "master"}/g" site/service.yaml | kubectl apply -f -
-            sed -e "s/dev/${env.BRANCH_NAME ?: "master"}/g" -e "s/dev.total-space.online/${env.BRANCH_NAME ?: "master"}.total-space.online/g" site/ingress.yaml | kubectl apply -f -
-            """
+                sed -e "s/dev/${BRANCH}/g" -e "s|localhost:5000/total-site:dev|${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}|g" deployment.yaml | kubectl apply -f -
+                sed "s/dev/${BRANCH}/g" service.yaml | kubectl apply -f -
+                sed -e "s/dev/${BRANCH}/g" -e "s/dev.total-space.online/${BRANCH}.total-space.online/g" ingress.yaml | kubectl apply -f -
+                """
+            }
         }
     }
 }
