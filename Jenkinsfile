@@ -33,13 +33,16 @@ stage('Checkout') {
 
 
 
-        stage('Build Maven') {
-            steps {
-                withMaven(maven: 'maven-3.9.9') {
-                    sh 'mvn clean package'
-                }
+stage('Build Maven') {
+    steps {
+        dir('site') {
+            withMaven(maven: 'maven-3.9.9') {
+                sh 'mvn clean package'
             }
         }
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
