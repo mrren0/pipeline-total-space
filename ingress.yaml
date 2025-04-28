@@ -2,12 +2,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: total-site
-  namespace: dev # В пайплайне подставится dev/prod
+  namespace: dev
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-    - host: dev.total-space.online # В пайплайне подставится dev/total-space
+    - host: dev.total-space.online
       http:
         paths:
           - path: /
