@@ -1,5 +1,5 @@
 pipeline {
-    agent { node { label 'deploy' } } // <- используем обычную Jenkins-ноду
+    agent any
 
     environment {
         REGISTRY = "registry.ci.svc.cluster.local:5000"
