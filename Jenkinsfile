@@ -2,21 +2,18 @@ pipeline {
     agent any
 
     environment {
+        REPO = "https://github.com/mrren0/site-total-space.git"
         REGISTRY = "registry.ci.svc.cluster.local:5000"
         IMAGE_NAME = "total-site"
         RAW_BRANCH = "${env.BRANCH_NAME ?: 'master'}"
         BRANCH = "${RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()}"
         BUILD_TAG = "${BRANCH}-${new Date().format('yyyyMMdd-HHmmss')}"
-        KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Manual Clone') {
             steps {
-                echo "Branch: ${env.BRANCH}, Tag: ${env.BUILD_TAG}"
-                dir('site') {
-                    git branch: "${env.RAW_BRANCH}", url: 'https://github.com/mrren0/site-total-space.git'
-                }
+                sh "rm -rf site && git clone --depth 1 --branch ${RAW_BRANCH} ${REPO} site"
             }
         }
 
@@ -41,14 +38,14 @@ pipeline {
             }
         }
 
-        stage('Deploy to K8s') {
+        stage('Deploy to Kubernetes') {
             steps {
                 dir('site') {
                     sh """
                         kubectl create namespace ${BRANCH} --dry-run=client -o yaml | kubectl apply -f -
-                        kubectl delete deployment total-site -n ${BRANCH} --ignore-not-found=true
-                        kubectl delete service total-site -n ${BRANCH} --ignore-not-found=true
-                        kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found=true
+                        kubectl delete deployment total-site -n ${BRANCH} --ignore-not-found
+                        kubectl delete service total-site -n ${BRANCH} --ignore-not-found
+                        kubectl delete ingress total-site -n ${BRANCH} --ignore-not-found
 
                         sed -e "s/dev/${BRANCH}/g" -e "s|localhost:5000/total-site:dev|${REGISTRY}/${IMAGE_NAME}:${BUILD_TAG}|g" deployment.yaml | kubectl apply -f -
                         sed "s/dev/${BRANCH}/g" service.yaml | kubectl apply -f -
