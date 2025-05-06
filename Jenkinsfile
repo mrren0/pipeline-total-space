@@ -2,18 +2,21 @@ pipeline {
     agent any
 
     environment {
-        REPO = "https://github.com/mrren0/site-total-space.git"
         REGISTRY = "registry.ci.svc.cluster.local:5000"
         IMAGE_NAME = "total-site"
         RAW_BRANCH = "${env.BRANCH_NAME ?: 'master'}"
         BRANCH = "${RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()}"
         BUILD_TAG = "${BRANCH}-${new Date().format('yyyyMMdd-HHmmss')}"
+        KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
 
     stages {
         stage('Manual Clone') {
             steps {
-                sh "rm -rf site && git clone --depth 1 --branch ${RAW_BRANCH} ${REPO} site"
+                sh '''
+                    rm -rf site
+                    git clone --depth 1 --branch ${RAW_BRANCH} https://github.com/mrren0/site-total-space.git site
+                '''
             }
         }
 
