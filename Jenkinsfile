@@ -1,25 +1,42 @@
 pipeline {
     agent any
-
+    options {
+        // Отключаем автоматический checkout SCM, чтобы избежать конфликтов
+        skipDefaultCheckout(true)
+    }
     environment {
         REGISTRY = "registry.ci.svc.cluster.local:5000"
         IMAGE_NAME = "total-site"
-        RAW_BRANCH = "${env.BRANCH_NAME ?: 'master'}"
+        RAW_BRANCH = "${env.BRANCH_NAME ?: 'main'}" // Используем 'main' вместо 'master'
         BRANCH = "${RAW_BRANCH.replaceAll('[^a-zA-Z0-9-]', '-').toLowerCase()}"
         BUILD_TAG = "${BRANCH}-${new Date().format('yyyyMMdd-HHmmss')}"
         KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
-
     stages {
-        stage('Manual Clone') {
+        stage('Debug') {
             steps {
-                sh '''
-                    rm -rf site
-                    git clone --depth 1 --branch ${RAW_BRANCH} https://github.com/mrren0/site-total-space.git site
-                '''
+                // Диагностика: выводим состояние директории и переменные
+                sh 'ls -la'
+                sh 'pwd'
+                echo "Branch: ${RAW_BRANCH}, Build Tag: ${BUILD_TAG}"
             }
         }
-
+        stage('Checkout SCM') {
+            steps {
+                // Очищаем и клонируем репозиторий
+                checkout scm: [
+                    $class: 'GitSCM',
+                    branches: [[name: "${RAW_BRANCH}"]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/mrren0/site-total-space.git',
+                        credentialsId: 'github-credentials' // Укажите ID ваших credentials
+                    ]],
+                    extensions: [[$class: 'WipeWorkspace'], [$class: 'CloneOption', depth: 1, noTags: true, shallow: true]]
+                ]
+                // Проверяем, что клонирование прошло успешно
+                sh 'git status'
+            }
+        }
         stage('Build Maven') {
             steps {
                 dir('site') {
@@ -29,7 +46,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build & Push Docker Image') {
             steps {
                 dir('site') {
@@ -40,7 +56,6 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy to Kubernetes') {
             steps {
                 dir('site') {
@@ -56,6 +71,14 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
